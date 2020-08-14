@@ -10,7 +10,7 @@ pip3 install -e .
 
 ## Partitioning and Running
 
-From the cola-master directory: Use colatools to load the dataset and split across ranks
+From the `cola-report-plots` directory: Use colatools to load the dataset and split across ranks
 ```
 svm_source_dir=./datasets
 local_data_dir=./data
