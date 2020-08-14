@@ -12,12 +12,8 @@ pip3 install -e .
 
 From the `cola-report-plots` directory: Use colatools to load the dataset and split across ranks
 ```
-svm_source_dir=./datasets
-local_data_dir=./data
 dataset=mg
-colatools --indir $svm_source_dir --outdir $local_data_dir \
-    load mg \
-    split --train 0.7 --seed 42 mg
+colatools load mg split --train 0.7 --seed 42 mg
 ```
 
 To generate report plots:

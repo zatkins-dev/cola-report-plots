@@ -11,7 +11,7 @@ import click
 class MatrixEditor(object):
     def __init__(self, indir=None, outdir=None, seed=None, debug=False):
         self.debug = debug
-        self.indir = os.path.abspath(indir or '../data')
+        self.indir = os.path.abspath(indir or 'datasets')
         self.outdir = os.path.abspath(outdir or 'data')
         self.data = None
         self.y = None
@@ -37,7 +37,7 @@ pass_editor = click.make_pass_decorator(MatrixEditor)
 
 @click.group(chain=True)
 @click.option('--basepath', default='.')
-@click.option('--indir', default=os.path.join('..', 'data'))
+@click.option('--indir', default='datasets')
 @click.option('--outdir', default='data')
 @click.option('--seed', type=click.INT, default=None)
 @click.option('-v', is_flag=True)
