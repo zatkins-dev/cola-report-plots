@@ -11,7 +11,7 @@ from cola.monitor import Monitor
 import pickle
 import os, sys
 sys.path.append('./scripts')
-from create_report_plots import make_intercept_plots, clean_plots
+from create_report_plots import make_report_plots, clean_plots
 
 def getGraphs(K, verbose=1):
     """ Returns a dictionary of graphs with relevant topologies """
@@ -104,7 +104,7 @@ def main(dataset):
         mon_center.save(modelname=f'model-center-{suf}.pickle', logname=f'result-center-{suf}.csv')
 
         # Run CoLA
-        make_intercept_plots(f'{dataset}_{topo}_', mon_default, mon_center, index, index_test, reg)
+        make_report_plots(f'{dataset}_{topo}_', mon_default, mon_center, index, index_test, reg)
 
 if __name__ == "__main__":
     main()

@@ -48,18 +48,18 @@ def clean_plots():
             for img in glob.glob(os.path.join(savedir, '*.png')):
                 os.remove(img)
 
-def make_intercept_plots(expname, default, center, index, index_test, reg=False):
+def make_report_plots(expname, default, center, index, index_test, reg=False):
     savedir = os.path.join('out','report','img')
     os.makedirs(savedir, exist_ok=True)
     rank = comm.get_rank()
 
     if rank == 0:
         # Set rc parameters
-        plt.rc('font', size=11)
+        plt.rc('font', size=10)
         plt.rc('xtick', labelsize=9)
         plt.rc('ytick', labelsize=9)
         plt.rc('lines', lw=1.4)
-        plt.rc('figure', figsize=(6.5, 3.5))
+        plt.rc('figure', figsize=(4.5, 2))
         plt.rc('legend', fancybox=False, loc='upper right', fontsize='small', borderaxespad=0)
         plt.tick_params(which='major', labelsize='small')
         from matplotlib import rcsetup
@@ -151,7 +151,6 @@ def make_stop_plot(expname, default, center, savedir):
 
         if rank == 0:
             fig, ax_l = plt.subplots(1, 1)
-            fig.set_size_inches(6.5, 3.5)
             ax_r = plt.twinx(ax=ax_l)
             ax_l.set_xlabel('Iterations')
             ax_l.set_ylabel(r'$\|\|\Delta x_{k}\|\|$')
@@ -176,7 +175,11 @@ def make_stop_plot(expname, default, center, savedir):
 
 def make_thm1_plot(expname, default, center, savedir, no_reg=False):
     rank = comm.get_rank()
-    for mon in [default, center]:
+    if rank == 0:
+        fig, ax = plt.subplots(1, 2, sharey=True)
+        ax[0].set_xlabel('Iterations')
+        ax[1].set_xlabel('Iterations')
+    for i, mon in enumerate([default, center]):
         comm.barrier()
         if mon is None:
             continue
@@ -197,25 +200,23 @@ def make_thm1_plot(expname, default, center, savedir, no_reg=False):
         local_subproblem = comm.reduce(local_subproblem, op='SUM', root=0)
 
         if rank == 0:
-            fig, ax = plt.subplots(1, 1)
-            fig.set_size_inches(3.5, 3)
-            ax.set_xlabel('Iterations')
-
+            ax[i].set_xlabel("Iterations")
             iters = np.asarray(local_data['i_iter'])
             label = r"$\sum_k \Gamma_{k}^{\sigma'}" + (r'-g_{[k]}$' if no_reg  else "$")
-            ax.semilogy(iters, local_subproblem, color='tab:cyan', linestyle='--', label=label)
+            ax[i].semilogy(iters, local_subproblem, color='tab:cyan', linestyle='--', label=label)
 
             y_axis = 'f' if no_reg else 'P'
             label = r"$f(Ax)$" if no_reg else r"$\mathcal{O}_A(x)$"
-            ax.semilogy('i_iter', y_axis, '', data=global_data, color='tab:orange', label=label)
+            ax[i].semilogy('i_iter', y_axis, '', data=global_data, color='tab:orange', label=label)
 
-            ax.legend(loc='best')
-            fig.tight_layout()
+    if rank == 0:
+        ax[1].legend(loc='best')
+        fig.tight_layout()
 
-            suf = '_no_reg' if no_reg else ''
-            fig.savefig(os.path.join(savedir, f'{expname}{mon.name}_thm1{suf}.png'), dpi=300)
-            plt.close(fig)
-        comm.reset()
+        suf = '_no_reg' if no_reg else ''
+        fig.savefig(os.path.join(savedir, f'{expname}thm1{suf}.png'), dpi=300)
+        plt.close(fig)
+    comm.reset()
 
 
 
