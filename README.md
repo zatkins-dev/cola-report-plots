@@ -12,12 +12,11 @@ pip3 install -e .
 
 From the `cola-report-plots` directory: Use colatools to load the dataset and split across ranks
 ```
-dataset=mg
-colatools load mg split --train 0.7 --seed 42 mg
+colatools load inv split --train 24 --seed 42 inv
 ```
 
 To generate report plots:
 ```
 export JOBLIB_CACHE_DIR='./cache'
-mpiexec -n 6 python3 scripts/run_cola_experiments.py mg
+mpiexec -n 16 python3 scripts/run_cola_experiments.py inv
 ```

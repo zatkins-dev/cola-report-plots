@@ -19,8 +19,8 @@ def plot_train_test(ax, monitor, index, index_test):
     y_test = monitor.y_test
     t = np.linspace(0, 24, len(y)+len(y_test))
 
-    ax.scatter(t[index], y, color='tab:orange', s=16, marker='x', label=f'Train Data')
-    ax.scatter(t[index_test], y_test, color='tab:blue', s=16, marker='o', label=f'Test Data')
+    ax.scatter(t[index], y, color='tab:orange', s=9, marker='x', label=f'Train Data')
+    ax.scatter(t[index_test], y_test, color='tab:blue', s=9, marker='o', label=f'Test Data')
     return ax
 
 def get_regression(monitor, index, index_test):
@@ -48,7 +48,7 @@ def clean_plots():
             for img in glob.glob(os.path.join(savedir, '*.png')):
                 os.remove(img)
 
-def make_report_plots(expname, default, center, index, index_test, reg=False):
+def make_report_plots(expname, default, center, index, index_test, reg=False, stop=False):
     savedir = os.path.join('out','report','img')
     os.makedirs(savedir, exist_ok=True)
     rank = comm.get_rank()
@@ -58,7 +58,7 @@ def make_report_plots(expname, default, center, index, index_test, reg=False):
         plt.rc('font', size=10)
         plt.rc('xtick', labelsize=9)
         plt.rc('ytick', labelsize=9)
-        plt.rc('lines', lw=1.4)
+        plt.rc('lines', lw=1.0)
         plt.rc('figure', figsize=(4.5, 2))
         plt.rc('legend', fancybox=False, loc='upper right', fontsize='small', borderaxespad=0)
         plt.tick_params(which='major', labelsize='small')
@@ -67,12 +67,14 @@ def make_report_plots(expname, default, center, index, index_test, reg=False):
         idx = 1 - np.linspace(0, 1, 20)
         plt.rc('axes', prop_cycle = rcsetup.cycler('color', nipy(idx)))
 
-    if reg:
-        make_regression_plot(expname, default, center, index, index_test, savedir)
+    if stop:
+        make_stop_plot(expname, default, center, savedir)
     else:
-        make_error_plot(expname, default, center, savedir)
-    make_stop_plot(expname, default, center, savedir)
-    make_thm1_plot(expname, default, center, savedir)
+        if reg:
+            make_regression_plot(expname, default, center, index, index_test, savedir)
+        else:
+            make_error_plot(expname, default, center, savedir)
+        make_thm1_plot(expname, default, center, savedir)
 
 def make_regression_plot(expname, default, center, index, index_test, savedir):
     rank = comm.get_rank()
@@ -176,7 +178,7 @@ def make_stop_plot(expname, default, center, savedir):
 def make_thm1_plot(expname, default, center, savedir, no_reg=False):
     rank = comm.get_rank()
     if rank == 0:
-        fig, ax = plt.subplots(1, 2, sharey=True)
+        fig, ax = plt.subplots(1, 2)
         ax[0].set_xlabel('Iterations')
         ax[1].set_xlabel('Iterations')
     for i, mon in enumerate([default, center]):

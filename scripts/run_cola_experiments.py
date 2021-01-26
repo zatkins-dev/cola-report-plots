@@ -34,11 +34,12 @@ def getSolversByLambda(l1_ratio, n_lambdas=10, size=1, random_state=42):
 @click.argument('dataset', type=click.STRING)
 def main(dataset):
     if dataset == 'inv':
-        lam = 1.
+        lam_stop = 3.15
+        lam = 0.01467
         reg = True
     elif dataset == 'mg':
         lam = 1e-3
-        reg = False
+        reg = True
     else:
         print('dataset not supported')
         return
@@ -67,6 +68,8 @@ def main(dataset):
 
     # Define subproblem
     solver = configure_solver(name='ElasticNet', l1_ratio=0.8, lambda_=lam/len(y), random_state=random_state)
+    if dataset='inv':
+        solver_stop = configure_solver(name='ElasticNet', l1_ratio=0.8, lambda_=lam_stop/len(y), random_state=random_state)
 
     # Add hooks to log and save metrics.
     output_dir = os.path.join('out', 'report', dataset)
@@ -105,6 +108,20 @@ def main(dataset):
 
         # Run CoLA
         make_report_plots(f'{dataset}_{topo}_', mon_default, mon_center, index, index_test, reg)
+        comm.barrier()
+        if dataset='inv':
+            mon_default_stop = Monitor(output_dir, mode='all', verbose=1, Ak=X, Ak_test=X_test, y_test=y_test, name='Default')
+            model_default_stop = Cola(gamma, solver_stop, theta, fit_intercept=False, normalize=True)
+            mon_default_stop.init(model_default_stop, graphs_center[topo])
+            model_default_stop = model_default_stop.fit(X, y, graphs_center[topo], mon_default_stop, global_iters, local_iters)
+
+            mon_center_stop = Monitor(output_dir, mode='all', verbose=1, Ak=X, Ak_test=X_test, y_test=y_test, name='Center')
+            model_center_stop = Cola(gamma, solver_stop, theta, fit_intercept=True, normalize=True)
+            mon_center_stop.init(model_center_stop, graphs_center[topo])
+            model_center_stop = model_center_stop.fit(X, y, graphs_center[topo], mon_center_stop, global_iters, local_iters)
+
+            make_report_plots(f'{dataset}_{topo}_', mon_default_stop, mon_center_stop, index, index_test, reg, stop=True)
+
 
 if __name__ == "__main__":
     main()
